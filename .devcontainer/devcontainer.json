@@ -1,0 +1,25 @@
+{
+  "name": "Laravel Codespaces Full Stack",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "settings": {
+    "php.validate.executablePath": "/usr/local/bin/php"
+  },
+  "extensions": [
+    "bmewburn.vscode-intelephense-client",
+    "onecentlin.laravel-blade",
+    "MehediDracula.php-namespace-resolver",
+    "shufo.vscode-blade-formatter",
+    "ms-azuretools.vscode-docker"
+  ],
+  "postCreateCommand": "cp .env.example .env && composer install && php artisan key:generate && npm install && npm run build",
+  "forwardPorts": [8000, 8080, 8025,6379],
+  "portsAttributes": {
+    "8000": { "label": "Laravel App", "onAutoForward": "openBrowser" },
+    "8080": { "label": "phpMyAdmin", "onAutoForward": "openBrowser" },
+    "8025": { "label": "Mailhog UI", "onAutoForward": "openBrowser" },
+     "6379": { "label": "Redis", "onAutoForward": "ignore" }
+  },
+  "remoteUser": "vscode"
+}
