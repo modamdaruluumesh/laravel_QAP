@@ -22,7 +22,7 @@ class StoreProductRequest extends FormRequest
                 'nullable',
             ],
             'product_image' => [
-                'string',
+               
                 'nullable',
             ],
             'product_code' => [

@@ -82,7 +82,7 @@ class ProductsController extends Controller
         abort_if(Gate::denies('product_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $categories = Category::pluck('category_name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.products.create', 'categories');
+        return view('admin.products.create', compact('categories'));
     }
 
     public function store(StoreProductRequest $request)
@@ -92,6 +92,7 @@ class ProductsController extends Controller
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $product->id]);
         }
+        // Handle product image upload
         if ($request->hasFile('product_image')) {
             $imgPath = $request->file('product_image')->store('uploads/', 'public');
             $product->product_image = $imgPath;
