@@ -12,6 +12,8 @@ services:
       - laravel
     depends_on:
       - db
+      - redis
+      - mailhog
 
   db:
     image: mysql:8.0
@@ -21,8 +23,6 @@ services:
       MYSQL_DATABASE: laravel
       MYSQL_USER: laravel
       MYSQL_PASSWORD: laravel
-    ports:
-      - "3306:3306"
     networks:
       - laravel
 
@@ -36,6 +36,20 @@ services:
       UPLOAD_LIMIT: 64M
     ports:
       - "8080:80"
+    networks:
+      - laravel
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    networks:
+      - laravel
+
+  mailhog:
+    image: mailhog/mailhog
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
     networks:
       - laravel
 

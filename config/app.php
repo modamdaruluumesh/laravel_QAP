@@ -54,7 +54,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://opulent-spoon-967gv775pr7fv45-8000.app.github.dev'),
 
     'asset_url' => env('ASSET_URL', '/'),
 
