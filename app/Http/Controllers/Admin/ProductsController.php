@@ -9,6 +9,8 @@ use App\Http\Requests\MassDestroyProductRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Models\Category;
+
 use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -52,7 +54,7 @@ class ProductsController extends Controller
                 return $row->product_name ? $row->product_name : '';
             });
             $table->editColumn('product_image', function ($row) {
-                return $row->product_image ? $row->product_image : '';
+                return $row->product_image ? '<img width="100px" src="' . asset('storage/' . trim($row->product_image, '/')) . '">' : '';
             });
             $table->editColumn('product_code', function ($row) {
                 return $row->product_code ? $row->product_code : '';
@@ -63,8 +65,11 @@ class ProductsController extends Controller
             $table->editColumn('product_breif_info', function ($row) {
                 return $row->product_breif_info ? $row->product_breif_info : '';
             });
+            $table->addColumn('category_category_name', function ($row) {
+                return $row->category ? $row->category->category_name : '';
+            });
 
-            $table->rawColumns(['actions', 'placeholder']);
+            $table->rawColumns(['actions', 'placeholder', 'product_image', 'category']);
 
             return $table->make(true);
         }
@@ -75,8 +80,9 @@ class ProductsController extends Controller
     public function create()
     {
         abort_if(Gate::denies('product_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $categories = Category::pluck('category_name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.products.create');
+        return view('admin.products.create', 'categories');
     }
 
     public function store(StoreProductRequest $request)
@@ -86,28 +92,38 @@ class ProductsController extends Controller
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $product->id]);
         }
-
+        if ($request->hasFile('product_image')) {
+            $imgPath = $request->file('product_image')->store('uploads/', 'public');
+            $product->product_image = $imgPath;
+            $product->save();
+        }
         return redirect()->route('admin.products.index');
     }
 
     public function edit(Product $product)
     {
         abort_if(Gate::denies('product_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $categories = Category::pluck('category_name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $product->load('category');
 
-        return view('admin.products.edit', compact('product'));
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product->update($request->all());
-
+        if ($request->hasFile('product_image')) {
+            $imgPath = $request->file('product_image')->store('uploads/', 'public');
+            $product->product_image = $imgPath;
+            $product->save();
+        }
         return redirect()->route('admin.products.index');
     }
 
     public function show(Product $product)
     {
         abort_if(Gate::denies('product_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
+        $product->load('category');
         return view('admin.products.show', compact('product'));
     }
 

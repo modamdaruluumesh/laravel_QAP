@@ -27,6 +27,7 @@ class Product extends Model implements HasMedia
         'product_image',
         'product_code',
         'product_price',
+        'category_id',
         'product_description',
         'product_breif_info',
         'created_at',
@@ -43,5 +44,21 @@ class Product extends Model implements HasMedia
     {
         $this->addMediaConversion('thumb')->fit('crop', 50, 50);
         $this->addMediaConversion('preview')->fit('crop', 120, 120);
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($product) {
+            do {
+                $code = 'PRD-' . strtoupper(Str::random(8));
+            } while (self::where('product_code', $code)->exists());
+
+            $product->product_code = $code;
+        });
+    }
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

@@ -21,7 +21,7 @@
             </div>
             <div class="form-group">
                 <label for="product_image">{{ trans('cruds.product.fields.product_image') }}</label>
-                <input class="form-control {{ $errors->has('product_image') ? 'is-invalid' : '' }}" type="text" name="product_image" id="product_image" value="{{ old('product_image', '') }}">
+                <input class="form-control {{ $errors->has('product_image') ? 'is-invalid' : '' }}" type="file" name="product_image" id="product_image" value="{{ old('product_image', '') }}">
                 @if($errors->has('product_image'))
                     <div class="invalid-feedback">
                         {{ $errors->first('product_image') }}
