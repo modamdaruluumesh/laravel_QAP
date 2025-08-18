@@ -55,7 +55,7 @@
                     <select class="form-control select2 {{ $errors->has('product_id') ? 'is-invalid' : '' }}"
                         name="product_id" id="product_id">
                         <option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>
-                        <!-- Options will be populated by JS -->
+                        <!-- Options will be injected by JS -->
                     </select>
                     @if ($errors->has('product_id'))
                         <div class="invalid-feedback">
@@ -204,51 +204,62 @@
 @endsection
 
 @section('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<script>
-    $(document).ready(function () {
-        // Initialize Select2
-        $('.select2').select2();
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
 
-        // Grouped products from Laravel (category_id => [{id, name}, ...])
-        const productsByCategory = @json($products->groupBy('category_id')->map->map(function ($product) {
-            return ['id' => $product->id, 'name' => $product->name];
-        }));
+            // Categories with products + price from backend
+            const productsByCategory = @json($productsByCategory);
 
-        const categorySelect = $('#catergory_name_id');
-        const productSelect = $('#product_id');
+            const categorySelect = $('#catergory_name_id');
+            const productSelect = $('#product_id');
+            const priceInput = $('#price'); // ✅ fixed ID
 
-        // Update product dropdown based on selected category
-        function updateProductDropdown() {
-            const categoryId = categorySelect.val();
+            function updateProductDropdown() {
+                const categoryId = categorySelect.val();
 
-            // Destroy Select2 to modify options
-            productSelect.empty().select2('destroy');
+                productSelect.empty();
+                productSelect.append(
+                    '<option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>');
 
-            // Add default option
-            productSelect.append('<option value="" disabled selected>{{ trans("global.pleaseSelect") }}</option>');
+                const category = productsByCategory.find(cat => cat.id == categoryId);
 
-            // If category is selected and has products
-            if (categoryId && productsByCategory[categoryId]) {
-                productsByCategory[categoryId].forEach(product => {
-                    const option = new Option(product.name, product.id, false, false);
-                    productSelect.append(option);
-                });
+                if (category && category.products.length > 0) {
+                    category.products.forEach(product => {
+                        const option = new Option(product.product_name, product.id, false, false);
+                        $(option).attr('data-price', product.product_price); // ✅ correct field
+                        productSelect.append(option);
+                    });
+                }
+
+                productSelect.trigger('change.select2');
             }
 
-            // Reinitialize Select2
-            productSelect.select2();
-        }
+            // Auto-fill price when product selected
+            productSelect.on('change', function() {
+                const selectedOption = $(this).find('option:selected');
+                const productPrice = selectedOption.attr('data-price'); // ✅ use attr()
+                if (productPrice !== undefined) {
+                    priceInput.val(productPrice);
+                } else {
+                    priceInput.val('');
+                }
+            });
 
-        // Listen for category change
-        categorySelect.on('change', updateProductDropdown);
+            categorySelect.on('change', updateProductDropdown);
 
-        // Initialize on page load if category is pre-selected (e.g., from old input)
-        if (categorySelect.val()) {
-            updateProductDropdown();
-        }
-    });
-</script>
+            // Initialize if category already chosen (e.g. after validation error)
+            if (categorySelect.val()) {
+                updateProductDropdown();
+
+                const oldProductId = "{{ old('product_id') }}";
+                if (oldProductId) {
+                    productSelect.val(oldProductId).trigger('change');
+                }
+            }
+        });
+    </script>
 @endsection

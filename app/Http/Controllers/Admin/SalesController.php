@@ -102,10 +102,10 @@ class SalesController extends Controller
         abort_if(Gate::denies('sale_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $client_names = Client::pluck('client_name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
+        $productsByCategory = Category::with(['products:id,category_id,product_name,product_price'])->get();
         $catergory_names = Category::pluck('category_name', 'id')->prepend(trans('global.pleaseSelect'), '');
         $products = \App\Models\Product::with('category')->get(); // Must have category_id
-        return view('admin.sales.create', compact('catergory_names', 'client_names','products'));
+        return view('admin.sales.create', compact('catergory_names', 'client_names', 'products', 'productsByCategory'));
     }
 
     public function store(StoreSaleRequest $request)
