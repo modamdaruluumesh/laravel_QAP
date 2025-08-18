@@ -38,8 +38,14 @@
                 <span class="help-block">{{ trans('cruds.sale.fields.catergory_name_helper') }}</span>
             </div>
             <div class="form-group">
+                <label for="product_id">Product</label>
+                <select class="form-control" name="product_id" id="product_id">
+                    <option value="">Please select</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="product_name">{{ trans('cruds.sale.fields.product_name') }}</label>
-                <input class="form-control {{ $errors->has('product_name') ? 'is-invalid' : '' }}" type="text" name="product_name" id="product_name" value="{{ old('product_name', '') }}">
+                <input class="form-control {{ $errors->has('product_name') ? 'is-invalid' : '' }}" type="text" name="product_name" id="product_name" value="{{ old('product_name', '') }}" readonly>
                 @if($errors->has('product_name'))
                     <div class="invalid-feedback">
                         {{ $errors->first('product_name') }}
@@ -49,7 +55,7 @@
             </div>
             <div class="form-group">
                 <label for="price">{{ trans('cruds.sale.fields.price') }}</label>
-                <input class="form-control {{ $errors->has('price') ? 'is-invalid' : '' }}" type="text" name="price" id="price" value="{{ old('price', '') }}">
+                <input class="form-control {{ $errors->has('price') ? 'is-invalid' : '' }}" type="text" name="price" id="price" value="{{ old('price', '') }}" readonly>
                 @if($errors->has('price'))
                     <div class="invalid-feedback">
                         {{ $errors->first('price') }}
@@ -151,6 +157,33 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$('#catergory_name_id').change(function() {
+    var categoryId = $(this).val();
+    $('#product_id').empty().append('<option value="">Please select</option>');
+    if (categoryId) {
+        $.get('/admin/sales/category/' + categoryId + '/products', function(data) {
+            $.each(data, function(i, product) {
+                $('#product_id').append('<option value="' + product.id + '">' + product.product_name + '</option>');
+            });
+        });
+    }
+});
 
-
+$('#product_id').change(function() {
+    var productId = $(this).val();
+    if (productId) {
+        $.get('/admin/sales/product/' + productId + '/details', function(product) {
+            $('#product_name').val(product.product_name);
+            $('#price').val(product.price);
+            // Add more fields if needed
+        });
+    } else {
+        $('#product_name').val('');
+        $('#price').val('');
+        // Clear other fields if needed
+    }
+});
+</script>
 @endsection
