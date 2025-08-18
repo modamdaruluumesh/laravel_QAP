@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\DropdownController;
+
 Route::redirect('/', '/login');
 Route::get('/home', function () {
     if (session('status')) {
@@ -81,10 +83,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::post('sales/parse-csv-import', 'SalesController@parseCsvImport')->name('sales.parseCsvImport');
     Route::post('sales/process-csv-import', 'SalesController@processCsvImport')->name('sales.processCsvImport');
     Route::resource('sales', 'SalesController');
-    // Fetch products by category (fix route to match AJAX)
-    Route::get('sales/category/{category}/products', 'SalesController@getProducts');
-    // Fetch product details
-    Route::get('sales/product/{product}/details', 'SalesController@getProductDetails');
+
+    // Fetch products by category
+    Route::get('sales/category/{category}/products', 'SalesController@getProducts')->name('sales.getProducts');
+
+    // Fetch product details (if needed later for price, stock, etc.)
+    Route::get('sales/product/{product}/details', 'SalesController@getProductDetails')->name('sales.getProductDetails');
 
     // Payments
     Route::delete('payments/destroy', 'PaymentsController@massDestroy')->name('payments.massDestroy');
@@ -109,3 +113,12 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'Auth', 
         Route::post('profile/destroy', 'ChangePasswordController@destroy')->name('password.destroyProfile');
     }
 });
+
+//for product dropdowns in sales
+Route::get('/products/by-category/{category_id}', [DropdownController::class, 'getProductNamesByCategory'])->name('products.by.category');
+
+Route::get('/get-products/{category_id}', [App\Http\Controllers\Admin\DropdownController::class, 'getProductNamesByCategory']);
+
+
+Route::get('/dropdown/products/category/{category_id}', [DropdownController::class, 'getProductNamesByCategory']);
+Route::get('/dropdown/product/{id}/price', [DropdownController::class, 'getProductPrice']);

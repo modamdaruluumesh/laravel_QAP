@@ -8,9 +8,9 @@ use App\Http\Requests\MassDestroySaleRequest;
 use App\Http\Requests\StoreSaleRequest;
 use App\Http\Requests\UpdateSaleRequest;
 use App\Models\Category;
+use App\Models\Client;
 use App\Models\Product;
 
-use App\Models\Client;
 use App\Models\Sale;
 use Gate;
 use Illuminate\Http\Request;
@@ -96,18 +96,6 @@ class SalesController extends Controller
 
         return view('admin.sales.index');
     }
-    // Get all products for a selected category
-    public function getProducts(Category $category)
-    {
-        $products = $category->products()->select('id', 'product_name')->get();
-        return response()->json($products);
-    }
-
-    // Get details of a selected product
-    public function getProductDetails(Product $product)
-    {
-        return response()->json($product);
-    }
 
     public function create()
     {
@@ -116,8 +104,8 @@ class SalesController extends Controller
         $client_names = Client::pluck('client_name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $catergory_names = Category::pluck('category_name', 'id')->prepend(trans('global.pleaseSelect'), '');
-
-        return view('admin.sales.create', compact('catergory_names', 'client_names'));
+        $products = \App\Models\Product::with('category')->get(); // Must have category_id
+        return view('admin.sales.create', compact('catergory_names', 'client_names','products'));
     }
 
     public function store(StoreSaleRequest $request)
