@@ -81,6 +81,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::post('sales/parse-csv-import', 'SalesController@parseCsvImport')->name('sales.parseCsvImport');
     Route::post('sales/process-csv-import', 'SalesController@processCsvImport')->name('sales.processCsvImport');
     Route::resource('sales', 'SalesController');
+    // Fetch products by category
+    Route::get('categories/{category}/products', 'SalesController@getProducts');
+
+    // Fetch product details
+    Route::get('products/{product}/details', 'SalesController@getProductDetails');
 
     // Payments
     Route::delete('payments/destroy', 'PaymentsController@massDestroy')->name('payments.massDestroy');

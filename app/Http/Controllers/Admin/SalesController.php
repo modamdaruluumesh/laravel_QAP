@@ -8,6 +8,8 @@ use App\Http\Requests\MassDestroySaleRequest;
 use App\Http\Requests\StoreSaleRequest;
 use App\Http\Requests\UpdateSaleRequest;
 use App\Models\Category;
+use App\Models\Product;
+
 use App\Models\Client;
 use App\Models\Sale;
 use Gate;
@@ -93,6 +95,18 @@ class SalesController extends Controller
         }
 
         return view('admin.sales.index');
+    }
+    // Get all products for a selected category
+    public function getProducts(Category $category)
+    {
+        $products = $category->products()->select('id', 'product_name')->get();
+        return response()->json($products);
+    }
+
+    // Get details of a selected product
+    public function getProductDetails(Product $product)
+    {
+        return response()->json($product);
     }
 
     public function create()
