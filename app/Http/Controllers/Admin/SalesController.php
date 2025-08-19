@@ -92,7 +92,7 @@ class SalesController extends Controller
                 return $row->product ? $row->product->product_name : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'client_name', 'catergory_name','product']);
+            $table->rawColumns(['actions', 'placeholder', 'client_name', 'catergory_name', 'product']);
 
             return $table->make(true);
         }
@@ -113,10 +113,33 @@ class SalesController extends Controller
 
     public function store(StoreSaleRequest $request)
     {
-        $sale = Sale::create($request->all());
+        $products     = $request->input('product_id', []);
+        $categories   = $request->input('catergory_name_id', []);
+        $prices       = $request->input('price', []);
+        $quantities   = $request->input('quantity', []);
+        $totals       = $request->input('total_amount', []);
 
-        return redirect()->route('admin.sales.index');
+        foreach ($products as $i => $productId) {
+            Sale::create([
+                'client_name_id'    => $request->client_name_id,
+                'catergory_name_id' => $categories[$i],
+                'product_id'        => $productId,
+                'price'             => $prices[$i],
+                'quantity'          => $quantities[$i],
+                'total_amount'      => $totals[$i],
+                'sub_total'         => $request->sub_total,
+                'discount'          => $request->discount,
+                'tax_rate'          => $request->tax_rate,
+                'total_payable'     => $request->total_payable,
+                'amount_payable'    => $request->amount_payable,
+                'payment_method'    => $request->payment_method,
+            ]);
+        }
+
+        return redirect()->route('admin.sales.index')->with('success', 'Sale(s) created successfully!');
     }
+
+
 
     public function edit(Sale $sale)
     {
