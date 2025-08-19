@@ -66,7 +66,8 @@
                         <!-- Total Amount -->
                         <div class="form-group">
                             <label>{{ trans('cruds.sale.fields.total_amount') }}</label>
-                            <input type="text" class="form-control total-amount-input" name="total_amount[]" value="" readonly>
+                            <input type="text" class="form-control total-amount-input" name="total_amount[]"
+                                value="" readonly>
                         </div>
                     </div>
                 </div>
@@ -95,13 +96,15 @@
                 <!-- Total Payable -->
                 <div class="form-group">
                     <label>{{ trans('cruds.sale.fields.total_payable') }}</label>
-                    <input class="form-control" type="text" name="total_payable" id="total_payable" value="" readonly>
+                    <input class="form-control" type="text" name="total_payable" id="total_payable" value=""
+                        readonly>
                 </div>
 
                 <!-- Amount Payable -->
                 <div class="form-group">
                     <label>{{ trans('cruds.sale.fields.amount_payable') }}</label>
-                    <input class="form-control" type="text" name="amount_payable" id="amount_payable" value="" readonly>
+                    <input class="form-control" type="text" name="amount_payable" id="amount_payable" value=""
+                        readonly>
                 </div>
 
                 <!-- Payment Method -->
@@ -125,90 +128,120 @@
 @endsection
 
 @section('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<script>
-$(document).ready(function () {
-    $('.select2').select2();
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
 
-    const productsByCategory = @json($productsByCategory);
+            const productsByCategory = @json($productsByCategory);
 
-    function bindRowEvents(row) {
-        const categorySelect = row.find('.category-select');
-        const productSelect = row.find('.product-select');
-        const priceInput = row.find('.price-input');
-        const quantityInput = row.find('.quantity-input');
-        const totalAmountInput = row.find('.total-amount-input');
+            function bindRowEvents(row) {
+                const categorySelect = row.find('.category-select');
+                const productSelect = row.find('.product-select');
+                const priceInput = row.find('.price-input');
+                const quantityInput = row.find('.quantity-input');
+                const totalAmountInput = row.find('.total-amount-input');
 
-        // Update product list when category changes
-        categorySelect.on('change', function () {
-            const categoryId = $(this).val();
-            productSelect.empty().append('<option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>');
-            const category = productsByCategory.find(cat => cat.id == categoryId);
-            if (category && category.products.length > 0) {
-                category.products.forEach(product => {
-                    const option = new Option(product.product_name, product.id, false, false);
-                    $(option).attr('data-price', product.product_price);
-                    productSelect.append(option);
+                // Update product list when category changes
+                categorySelect.on('change', function() {
+                    const categoryId = $(this).val();
+                    productSelect.empty().append(
+                        '<option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>'
+                    );
+                    const category = productsByCategory.find(cat => cat.id == categoryId);
+                    if (category && category.products.length > 0) {
+                        category.products.forEach(product => {
+                            const option = new Option(product.product_name, product.id, false,
+                                false);
+                            $(option).attr('data-price', product.product_price);
+                            productSelect.append(option);
+                        });
+                    }
+                    productSelect.trigger('change.select2');
                 });
+
+                // Auto-fill price when product is chosen
+                productSelect.on('select2:select', function() {
+                    const selectedOption = $(this).find('option:selected');
+                    const productPrice = selectedOption.attr('data-price');
+                    priceInput.val(productPrice ? productPrice : '');
+                    calculateRow();
+                });
+
+                // Per-row calculation
+                function calculateRow() {
+                    const price = parseFloat(priceInput.val()) || 0;
+                    const qty = parseFloat(quantityInput.val()) || 0;
+                    const total = price * qty;
+                    totalAmountInput.val(total.toFixed(2));
+                    calculateTotals();
+                }
+
+                quantityInput.on('input keyup change', calculateRow);
+                priceInput.on('input keyup change', calculateRow);
             }
-            productSelect.trigger('change.select2');
+
+            // Calculate grand totals
+            function calculateTotals() {
+                let subTotal = 0;
+                $('.total-amount-input').each(function() {
+                    subTotal += parseFloat($(this).val()) || 0;
+                });
+
+                const discount = parseFloat($('#discount').val()) || 0;
+                const taxRate = parseFloat($('#tax_rate').val()) || 0;
+
+                let discounted = subTotal - (subTotal * (discount / 100));
+                let totalPayable = discounted + (discounted * (taxRate / 100));
+
+                $('#sub_total').val(subTotal.toFixed(2));
+                $('#total_payable').val(totalPayable.toFixed(2));
+                $('#amount_payable').val(totalPayable.toFixed(2));
+            }
+
+            $('#discount, #tax_rate').on('input keyup change', calculateTotals);
+
+            // Init first row
+            bindRowEvents($('.product-row').first());
+
+            // Add new product rows
+            // Add new product rows
+            $('#add-more-product').on('click', function() {
+                let newRow = $('.product-row:first').clone(false, false); // clone without events
+
+                // Reset inputs
+                newRow.find('input').val('');
+                newRow.find('select').val('').empty(); // clear cloned selects
+
+                // Reset product dropdown with placeholder
+                newRow.find('.product-select').append(
+                    '<option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>');
+
+                // Reset category dropdown with original options
+                let categorySelect = newRow.find('.category-select');
+                categorySelect.empty().append(
+                    '<option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>');
+                @foreach ($catergory_names as $id => $entry)
+                    categorySelect.append(
+                        '<option value="{{ $id }}">{{ $entry }}</option>');
+                @endforeach
+
+                // Remove select2 wrappers that got cloned
+                newRow.find('.select2').removeClass('select2-hidden-accessible').next('.select2').remove();
+
+                // Append fresh row
+                $('#products-wrapper').append(newRow);
+
+                // Re-init select2 on new selects
+                newRow.find('.select2').select2();
+
+                // Bind events again
+                bindRowEvents(newRow);
+            });
+
+
         });
-
-        // Auto-fill price when product is chosen
-        productSelect.on('select2:select', function () {
-            const selectedOption = $(this).find('option:selected');
-            const productPrice = selectedOption.attr('data-price');
-            priceInput.val(productPrice ? productPrice : '');
-            calculateRow();
-        });
-
-        // Per-row calculation
-        function calculateRow() {
-            const price = parseFloat(priceInput.val()) || 0;
-            const qty = parseFloat(quantityInput.val()) || 0;
-            const total = price * qty;
-            totalAmountInput.val(total.toFixed(2));
-            calculateTotals();
-        }
-
-        quantityInput.on('input keyup change', calculateRow);
-        priceInput.on('input keyup change', calculateRow);
-    }
-
-    // Calculate grand totals
-    function calculateTotals() {
-        let subTotal = 0;
-        $('.total-amount-input').each(function () {
-            subTotal += parseFloat($(this).val()) || 0;
-        });
-
-        const discount = parseFloat($('#discount').val()) || 0;
-        const taxRate = parseFloat($('#tax_rate').val()) || 0;
-
-        let discounted = subTotal - (subTotal * (discount / 100));
-        let totalPayable = discounted + (discounted * (taxRate / 100));
-
-        $('#sub_total').val(subTotal.toFixed(2));
-        $('#total_payable').val(totalPayable.toFixed(2));
-        $('#amount_payable').val(totalPayable.toFixed(2));
-    }
-
-    $('#discount, #tax_rate').on('input keyup change', calculateTotals);
-
-    // Init first row
-    bindRowEvents($('.product-row').first());
-
-    // Add new product rows
-    $('#add-more-product').on('click', function () {
-        let newRow = $('.product-row:first').clone();
-        newRow.find('input').val('');
-        newRow.find('select').val('').trigger('change');
-        $('#products-wrapper').append(newRow);
-        $('.select2').select2();
-        bindRowEvents(newRow);
-    });
-});
-</script>
+    </script>
 @endsection
