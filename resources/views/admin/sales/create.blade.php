@@ -216,21 +216,32 @@
 
             const categorySelect = $('#catergory_name_id');
             const productSelect = $('#product_id');
-            const priceInput = $('#price'); // ✅ fixed ID
+            const priceInput = $('#price');
+            const quantityInput = $('#quantity');
+            const totalAmountInput = $('#total_amount');
+            const subTotalInput = $('#sub_total');
+            const discountInput = $('#discount');
+            const taxRateInput = $('#tax_rate');
+            const totalPayableInput = $('#total_payable');
+            const amountPayableInput = $('#amount_payable');
 
+            // -------------------------------
+            // Update products when category changes
+            // -------------------------------
             function updateProductDropdown() {
                 const categoryId = categorySelect.val();
 
                 productSelect.empty();
                 productSelect.append(
-                    '<option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>');
+                    '<option value="" disabled selected>{{ trans('global.pleaseSelect') }}</option>'
+                );
 
                 const category = productsByCategory.find(cat => cat.id == categoryId);
 
                 if (category && category.products.length > 0) {
                     category.products.forEach(product => {
                         const option = new Option(product.product_name, product.id, false, false);
-                        $(option).attr('data-price', product.product_price); // ✅ correct field
+                        $(option).attr('data-price', product.product_price);
                         productSelect.append(option);
                     });
                 }
@@ -238,28 +249,75 @@
                 productSelect.trigger('change.select2');
             }
 
+            // -------------------------------
             // Auto-fill price when product selected
-            productSelect.on('change', function() {
+            // -------------------------------
+            productSelect.on('select2:select', function() {
                 const selectedOption = $(this).find('option:selected');
-                const productPrice = selectedOption.attr('data-price'); // ✅ use attr()
+                const productPrice = selectedOption.attr('data-price');
                 if (productPrice !== undefined) {
                     priceInput.val(productPrice);
                 } else {
                     priceInput.val('');
                 }
+                calculateTotals();
             });
+
+            // -------------------------------
+            // Main calculation logic
+            // -------------------------------
+            function calculateTotals() {
+                const price = parseFloat(priceInput.val()) || 0;
+                const quantity = parseFloat(quantityInput.val()) || 0;
+                const discount = parseFloat(discountInput.val()) || 0;
+                const taxRate = parseFloat(taxRateInput.val()) || 0;
+
+                // Step 1: total = price × qty
+                let totalAmount = price * quantity;
+
+                // Step 2: sub total = same as total (before discount/tax)
+                let subTotal = totalAmount;
+
+                // Step 3: apply discount (%)
+                let discountedAmount = subTotal - (subTotal * (discount / 100));
+
+                // Step 4: apply tax rate (%)
+                let totalPayable = discountedAmount + (discountedAmount * (taxRate / 100));
+
+                // Update fields
+                totalAmountInput.val(totalAmount.toFixed(2));
+                subTotalInput.val(subTotal.toFixed(2));
+                totalPayableInput.val(totalPayable.toFixed(2));
+
+                // Step 5: auto-fill amount payable (same as total payable)
+                amountPayableInput.val(totalPayable.toFixed(2));
+            }
+
+            // -------------------------------
+            // Bind events
+            // -------------------------------
+            quantityInput.on('input keyup change', calculateTotals);
+            discountInput.on('input keyup change', calculateTotals);
+            taxRateInput.on('input keyup change', calculateTotals);
+            priceInput.on('input keyup change', calculateTotals);
 
             categorySelect.on('change', updateProductDropdown);
 
-            // Initialize if category already chosen (e.g. after validation error)
+            // -------------------------------
+            // Initialize if category already chosen (after validation error)
+            // -------------------------------
             if (categorySelect.val()) {
                 updateProductDropdown();
-
                 const oldProductId = "{{ old('product_id') }}";
                 if (oldProductId) {
                     productSelect.val(oldProductId).trigger('change');
                 }
             }
+
+            // -------------------------------
+            // Run calculation on page load
+            // -------------------------------
+            calculateTotals();
         });
     </script>
 @endsection

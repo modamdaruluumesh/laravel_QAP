@@ -22,15 +22,15 @@ class StoreSaleRequest extends FormRequest
                 'nullable',
             ],
             'price' => [
-                'string',
+                'numeric',
                 'nullable',
             ],
             'quantity' => [
-                'string',
+                'numeric',
                 'nullable',
             ],
             'total_amount' => [
-                'string',
+                'numeric',
                 'nullable',
             ],
             'sub_total' => [
