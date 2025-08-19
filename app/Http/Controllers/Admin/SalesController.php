@@ -88,8 +88,11 @@ class SalesController extends Controller
             $table->editColumn('payment_method', function ($row) {
                 return $row->payment_method ? Sale::PAYMENT_METHOD_SELECT[$row->payment_method] : '';
             });
+            $table->addColumn('product_product_name', function ($row) {
+                return $row->product ? $row->product->product_name : '';
+            });
 
-            $table->rawColumns(['actions', 'placeholder', 'client_name', 'catergory_name']);
+            $table->rawColumns(['actions', 'placeholder', 'client_name', 'catergory_name','product']);
 
             return $table->make(true);
         }

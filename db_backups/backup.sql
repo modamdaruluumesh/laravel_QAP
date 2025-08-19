@@ -9,6 +9,8 @@
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
@@ -346,7 +348,7 @@ CREATE TABLE `payments` (
   PRIMARY KEY (`id`),
   KEY `client_name_fk_10689625` (`client_name_id`),
   CONSTRAINT `client_name_fk_10689625` FOREIGN KEY (`client_name_id`) REFERENCES `clients` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -355,6 +357,8 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
+INSERT INTO `payments` VALUES
+(1,'Heavenly Bodies',NULL,'cash','2025-08-17','2025-08-19 04:37:54','2025-08-19 04:37:54',NULL,1);
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -787,12 +791,15 @@ CREATE TABLE `sales` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   `client_name_id` bigint unsigned DEFAULT NULL,
   `catergory_name_id` bigint unsigned DEFAULT NULL,
+  `product_id` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `client_name_fk_10689609` (`client_name_id`),
   KEY `catergory_name_fk_10689610` (`catergory_name_id`),
+  KEY `fk_sales_product` (`product_id`),
   CONSTRAINT `catergory_name_fk_10689610` FOREIGN KEY (`catergory_name_id`) REFERENCES `categories` (`id`),
-  CONSTRAINT `client_name_fk_10689609` FOREIGN KEY (`client_name_id`) REFERENCES `clients` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  CONSTRAINT `client_name_fk_10689609` FOREIGN KEY (`client_name_id`) REFERENCES `clients` (`id`),
+  CONSTRAINT `fk_sales_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -801,6 +808,8 @@ CREATE TABLE `sales` (
 
 LOCK TABLES `sales` WRITE;
 /*!40000 ALTER TABLE `sales` DISABLE KEYS */;
+INSERT INTO `sales` VALUES
+(1,NULL,'870','1','870','800','5','10','800','800','cash','2025-08-19 04:37:20','2025-08-19 04:37:20',NULL,1,1,1);
 /*!40000 ALTER TABLE `sales` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -980,6 +989,7 @@ INSERT INTO `users` VALUES
 (1,'Admin','admin@admin.com',NULL,'$2y$10$ErDHlPLSCKYZnC1LYUitEeMbtEEqGF2nq4h2xRWkx.2GfhjM9./tC',NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
@@ -989,4 +999,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-18 16:26:00
+-- Dump completed on 2025-08-19  4:42:52
